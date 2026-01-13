@@ -2,63 +2,94 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Loading domain...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Loading...</title>
     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
-    
+
     <style>
+        /* Basic Reset */
         body, html {
             margin: 0;
             padding: 0;
-            height: 100%;
             width: 100%;
-            background-color: black;
-            overflow: hidden;
+            height: 100%;
+            overflow: hidden; /* Prevent scrollbars */
         }
 
-        .container {
+        /* Styling Requirements */
+        body {
+            background-color: #000000; /* Black Background */
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            width: 100vw;
         }
 
-        #domain-logo {
-            color: white;
-            font-family: 'Audiowide', cursive;
-            font-weight: 900;
-            text-transform: uppercase;
-            text-align: center;
-            font-size: 13vw;
-            letter-spacing: -2px; 
-            word-wrap: break-word;
-            max-width: 95%;
-            line-height: 1.1;
+        /* Container to define safe area (90% of screen) */
+        #logo-container {
+            width: 90vw; 
+            height: 90vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* SVG Logic */
+        svg {
+            width: 100%;
+            max-height: 100%;
+            /* This ensures the text scales but respects aspect ratio */
+            display: block; 
+        }
+
+        text {
+            font-family: 'Audiowide', cursive; /* The requested font */
+            fill: #ffffff; /* White text */
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 id="domain-logo">Loading domain...</h1>
+
+    <div id="logo-container">
+        <svg id="responsive-svg">
+            <text id="domain-text" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">
+                </text>
+        </svg>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var currentDomain = window.location.hostname;
+        // 1. Get the domain name
+        // window.location.hostname gets the domain (e.g., "example.com" or "localhost")
+        // If opened as a local file, we provide a fallback text.
+        const domainName = window.location.hostname || "LocalFile";
 
-            currentDomain = currentDomain.replace(/^www\./, '');
+        // 2. Set the Page Title Dynamically
+        document.title = domainName;
 
-            document.title = currentDomain;
+        // 3. Update the SVG Text
+        const textElement = document.getElementById('domain-text');
+        const svgElement = document.getElementById('responsive-svg');
+        
+        textElement.textContent = domainName;
 
-            var logoElement = document.getElementById("domain-logo");
-            logoElement.innerText = currentDomain;
+        // 4. Calculate Sizing (The "Shrink to Fit" Logic)
+        // We must wait for the font to load so the dimensions are calculated correctly.
+        document.fonts.ready.then(() => {
+            // Get the exact bounding box of the text
+            const bbox = textElement.getBBox();
             
-            if (!currentDomain) {
-                logoElement.innerText = "Local File";
-                document.title = "Local File";
-            }
+            // Set the SVG viewBox to match the text size exactly.
+            // This forces the SVG to scale the text to fit the #logo-container
+            // regardless of how long the domain name is.
+            svgElement.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
+        });
+
+        // Re-calculate on window resize (e.g., rotating phone) to ensure crisp rendering
+        window.addEventListener('resize', () => {
+             const bbox = textElement.getBBox();
+             svgElement.setAttribute("viewBox", `${bbox.x} ${bbox.y} ${bbox.width} ${bbox.height}`);
         });
     </script>
 </body>
